@@ -3849,6 +3849,27 @@ function clearBitwise() {
   document.getElementById("bitwise-result").style.display = "none";
 }
 
+/*****************Calculate hypotenuse************/
+
+function hypotenuse() {
+  const a = parseFloat(prompt("Enter side a:"));
+  const b = parseFloat(prompt("Enter side b:"));
+  if (isNaN(a) || isNaN(b) || a <= 0 || b <= 0) {
+    currentExpression = "Error";
+  } else {
+    const result = Math.sqrt(a*a + b*b);
+    calculationHistory?.push({
+      expression: `hyp(${a}, ${b}) = ${result}`,
+      words: numberToWords(result),
+      time: new Date().toLocaleTimeString(),
+    });
+    localStorage.setItem("calcHistory", JSON.stringify(calculationHistory));
+    renderHistory();
+    currentExpression = result.toString();
+  }
+  updateResult();
+}
+
 function appendPi() {
   const piDisplay = "π"; // what the user sees
   const piEval = "Math.PI"; // what eval() will use
