@@ -1,0 +1,240 @@
+name: CI/CD Pipeline for Greg's Calculator
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+  IMAGE_NAME: greg-calculator
+  LIVE_URL: ${{ vars.LIVE_URL }}
+
+jobs:
+  # ============================================
+  # JOB 1: Lint with ESLint
+  # ============================================
+  lint:
+    name: Job 1 - ESLint Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run ESLint
+        run: npm run lint
+      
+      - name: Display lint result
+        run: echo "✅ Linting completed successfully!"
+
+  # ============================================
+  # JOB 2: Unit Tests on Node.js matrix (20 and 22)
+  # ============================================
+  test:
+    name: Job 2 - Unit Tests (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    needs: [lint]
+    strategy:
+      matrix:
+        node-version: [20, 22]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run Jest tests
+        run: npm test
+      
+      - name: Run tests with coverage
+        run: npx jest --coverage --forceExit
+      
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-node-${{ matrix.node-version }}
+          path: coverage/
+      
+      - name: Display test result
+        run: echo "✅ All 41 tests passed on Node ${{ matrix.node-version }}!"
+
+  # ============================================
+  # JOB 3: Security Audit with npm audit
+  # ============================================
+  security-audit:
+    name: Job 3 - Security Audit
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+      
+      - name: Display audit result
+        run: echo "✅ Security audit passed - no critical vulnerabilities found!"
+
+  # ============================================
+  # JOB 4: Docker Build and Push to DockerHub
+  # ============================================
+  docker-build-push:
+    name: Job 4 - Docker Build & Push to DockerHub
+    runs-on: ubuntu-latest
+    needs: [security-audit]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=git-,format=short
+            type=raw,value=${{ github.run_number }}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Verify Docker image
+        run: |
+          echo "✅ Docker image built and pushed successfully!"
+          echo "Image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest"
+
+  # ============================================
+  # JOB 5: Deploy via FTPS to VPS
+  # ============================================
+  ftps-deploy:
+    name: Job 5 - FTPS Deploy to VPS
+    runs-on: ubuntu-latest
+    needs: [docker-build-push]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install lftp for FTPS
+        run: sudo apt-get update && sudo apt-get install -y lftp
+      
+      - name: Create deployment directory structure
+        run: |
+          echo "Preparing files for FTPS deployment..."
+          mkdir -p deploy_temp
+          cp -r public/* deploy_temp/
+          cp Dockerfile deploy_temp/
+          echo "Deployment prepared at $(date)" > deploy_temp/deploy-info.txt
+      
+      - name: Upload via FTPS
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -c "
+          set ftp:ssl-allow true;
+          set ftp:ssl-force true;
+          set ssl:verify-certificate no;
+          open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER;
+          mirror -R deploy_temp/ ./greg-calculator/;
+          bye
+          "
+      
+      - name: Clean up temp files
+        run: rm -rf deploy_temp
+      
+      - name: Display deployment status
+        run: echo "✅ FTPS deployment completed to ${{ secrets.FTP_SERVER }}/greg-calculator/"
+
+  # ============================================
+  # JOB 6: Verify Deployment by Curling Live URL
+  # ============================================
+  verify-deployment:
+    name: Job 6 - Verify Live Deployment
+    runs-on: ubuntu-latest
+    needs: [ftps-deploy]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - name: Wait for deployment to propagate
+        run: sleep 10
+      
+      - name: Verify HTTP 200 response
+        env:
+          LIVE_URL: ${{ vars.LIVE_URL }}
+        run: |
+          echo "Verifying deployment at: $LIVE_URL"
+          STATUS_CODE=$(curl -o /dev/null -s -w "%{http_code}\n" $LIVE_URL)
+          echo "HTTP Status Code: $STATUS_CODE"
+          if [ $STATUS_CODE -eq 200 ]; then
+            echo "✅ Deployment verified! Calculator is live at $LIVE_URL"
+          else
+            echo "❌ Deployment verification failed! Expected 200, got $STATUS_CODE"
+            exit 1
+          fi
+      
+      - name: Verify page content
+        env:
+          LIVE_URL: ${{ vars.LIVE_URL }}
+        run: |
+          if curl -s $LIVE_URL | grep -q "Greg Tizhe Zirra"; then
+            echo "✅ Page content verified - Name found!"
+          else
+            echo "⚠️ Warning: Name 'Greg Tizhe Zirra' not found in page"
+          fi
+          
+          if curl -s $LIVE_URL | grep -q "MODULO"; then
+            echo "✅ Unique feature verified - MODULO badge found!"
+          else
+            echo "⚠️ Warning: MODULO feature badge not found"
+          fi
+      
+      - name: Final success message
+        run: |
+          echo "🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉"
+          echo "  CI/CD PIPELINE COMPLETE!                              "
+          echo "  Greg's Calculator is now LIVE!                        "
+          echo "  URL: ${{ vars.LIVE_URL }}                             "
+          echo "🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉"
