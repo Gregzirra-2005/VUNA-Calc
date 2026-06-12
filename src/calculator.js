@@ -51,24 +51,24 @@ class Calculator {
         
         const prev = parseFloat(this.previousValue);
         const current = parseFloat(this.currentValue);
-        let result = 0;
+        let calculationResult = 0;
         
         switch (this.operator) {
             case '+':
-                result = prev + current;
+                calculationResult = prev + current;
                 break;
             case '-':
-                result = prev - current;
+                calculationResult = prev - current;
                 break;
             case '*':
-                result = prev * current;
+                calculationResult = prev * current;
                 break;
             case '/':
                 if (current === 0) {
                     this.clear();
                     throw new Error('Division by zero');
                 }
-                result = prev / current;
+                calculationResult = prev / current;
                 break;
             case '%':
                 // MODULO - Your unique feature!
@@ -76,16 +76,16 @@ class Calculator {
                     this.clear();
                     throw new Error('Modulo by zero');
                 }
-                result = prev % current;
+                calculationResult = prev % current;
                 break;
             default:
                 return this.currentValue;
         }
         
         // Round to avoid floating point issues
-        result = parseFloat(result.toFixed(10));
+        calculationResult = parseFloat(calculationResult.toFixed(10));
         
-        this.currentValue = result.toString();
+        this.currentValue = calculationResult.toString();
         this.previousValue = '';
         this.operator = null;
         this.waitingForOperand = true;
