@@ -33,7 +33,13 @@ jobs:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         run: |
-          lftp -c "open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER; mirror -R public/ /home/greg.vudse26.cloud/public_html/; bye"
+          lftp -c "
+          open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER;
+          ls -la;
+          pwd;
+          mirror -R public/ ./public_html/;
+          ls -la public_html/;
+          "
       - run: echo "✅ Deployed!"
 
   verify:
@@ -42,5 +48,7 @@ jobs:
     needs: [deploy]
     steps:
       - run: |
-          curl -s -o /dev/null -w "%{http_code}\n" ${{ vars.LIVE_URL }}
-          echo "✅ Calculator is live at ${{ vars.LIVE_URL }}"
+          echo "Waiting for deployment..."
+          sleep 10
+          curl -I http://greg.vudse26.cloud
+          echo "✅ Deployment check complete"
