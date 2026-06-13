@@ -101,31 +101,26 @@
                     </div>
                     
                     <div class="btn-grid">
-                        <!-- Row 1 -->
                         <button class="btn btn-light" onclick="appendNumber(7)">7</button>
                         <button class="btn btn-light" onclick="appendNumber(8)">8</button>
                         <button class="btn btn-light" onclick="appendNumber(9)">9</button>
                         <button class="btn btn-operator" onclick="setOperator('/')">÷</button>
                         
-                        <!-- Row 2 -->
                         <button class="btn btn-light" onclick="appendNumber(4)">4</button>
                         <button class="btn btn-light" onclick="appendNumber(5)">5</button>
                         <button class="btn btn-light" onclick="appendNumber(6)">6</button>
                         <button class="btn btn-operator" onclick="setOperator('*')">×</button>
                         
-                        <!-- Row 3 -->
                         <button class="btn btn-light" onclick="appendNumber(1)">1</button>
                         <button class="btn btn-light" onclick="appendNumber(2)">2</button>
                         <button class="btn btn-light" onclick="appendNumber(3)">3</button>
                         <button class="btn btn-operator" onclick="setOperator('-')">−</button>
                         
-                        <!-- Row 4 -->
                         <button class="btn btn-light" onclick="appendNumber(0)">0</button>
                         <button class="btn btn-light" onclick="appendDecimal()">.</button>
                         <button class="btn btn-operator" onclick="setOperator('%')">%</button>
                         <button class="btn btn-operator" onclick="setOperator('+')">+</button>
                         
-                        <!-- Row 5 -->
                         <button class="btn btn-clear" onclick="clearDisplay()">AC</button>
                         <button class="btn btn-warning" onclick="backspace()">⌫</button>
                         <button class="btn btn-equals" onclick="calculate()">=</button>
@@ -135,6 +130,128 @@
         </div>
     </div>
 
-    <script type="module" src="calculator-app.js"></script>
+    <script>
+        // Pure calculator logic - All in one file
+        let currentValue = '';
+        let previousValue = '';
+        let operator = null;
+        let waitingForOperand = false;
+        
+        function updateDisplay() {
+            const display = document.getElementById('result');
+            if (display) {
+                if (currentValue === '') {
+                    display.value = '0';
+                } else {
+                    display.value = currentValue;
+                }
+            }
+        }
+        
+        function appendNumber(num) {
+            if (waitingForOperand) {
+                currentValue = '';
+                waitingForOperand = false;
+            }
+            currentValue += num.toString();
+            updateDisplay();
+        }
+        
+        function appendDecimal() {
+            if (waitingForOperand) {
+                currentValue = '0';
+                waitingForOperand = false;
+            }
+            if (!currentValue.includes('.')) {
+                currentValue += '.';
+            }
+            updateDisplay();
+        }
+        
+        function setOperator(op) {
+            if (currentValue === '' && previousValue === '') {
+                return;
+            }
+            
+            if (previousValue !== '' && currentValue !== '') {
+                calculate();
+            }
+            
+            operator = op;
+            previousValue = currentValue;
+            waitingForOperand = true;
+            updateDisplay();
+        }
+        
+        function calculate() {
+            if (operator === null || currentValue === '' || previousValue === '') {
+                return;
+            }
+            
+            const prev = parseFloat(previousValue);
+            const current = parseFloat(currentValue);
+            let result = 0;
+            
+            switch (operator) {
+                case '+':
+                    result = prev + current;
+                    break;
+                case '-':
+                    result = prev - current;
+                    break;
+                case '*':
+                    result = prev * current;
+                    break;
+                case '/':
+                    if (current === 0) {
+                        clearDisplay();
+                        document.getElementById('result').value = 'Error: Division by zero';
+                        return;
+                    }
+                    result = prev / current;
+                    break;
+                case '%':
+                    // MODULO - Greg's unique feature!
+                    if (current === 0) {
+                        clearDisplay();
+                        document.getElementById('result').value = 'Error: Modulo by zero';
+                        return;
+                    }
+                    result = prev % current;
+                    break;
+                default:
+                    return;
+            }
+            
+            result = parseFloat(result.toFixed(10));
+            currentValue = result.toString();
+            previousValue = '';
+            operator = null;
+            waitingForOperand = true;
+            updateDisplay();
+        }
+        
+        function clearDisplay() {
+            currentValue = '';
+            previousValue = '';
+            operator = null;
+            waitingForOperand = false;
+            updateDisplay();
+        }
+        
+        function backspace() {
+            if (currentValue.length > 0) {
+                currentValue = currentValue.slice(0, -1);
+                if (currentValue === '') {
+                    currentValue = '0';
+                    waitingForOperand = false;
+                }
+                updateDisplay();
+            }
+        }
+        
+        // Initialize display
+        updateDisplay();
+    </script>
 </body>
 </html>
