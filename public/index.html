@@ -3,11 +3,382 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Greg Tizhe Zirra | Calculator with MODULO Feature</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Greg Tizhe Zirra | Statistics Calculator</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .particles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: floatParticle 20s infinite linear;
+        }
+
+        @keyframes floatParticle {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInUp 1s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: white;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #ffd89b 0%, #c7e9fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card p {
+            color: #6c757d;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .card-check {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #48bb78;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 60px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 5px;
+        }
+
+        .calculator-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 48px;
+            padding: 40px;
+            backdrop-filter: blur(5px);
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .section-title h2 {
+            font-size: 2rem;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .section-title p {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .calculator-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 48px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 32px;
+            max-width: 600px;
+            margin: 0 auto;
+            transition: transform 0.3s ease;
+        }
+
+        .calculator-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .calc-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .calc-header h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .unique-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 40px;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        }
+
+        .data-input-section {
+            margin-bottom: 25px;
+        }
+
+        .data-input-section label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+
+        #data-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-family: 'Inter', monospace;
+            resize: vertical;
+        }
+
+        #data-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .stats-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .btn-stat {
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-stat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .result-container {
+            background: #f8f9fa;
+            border-radius: 24px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .result-label {
+            font-size: 0.8rem;
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .result-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2d3748;
+            word-break: break-all;
+        }
+
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            margin-top: 40px;
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        .calc-footer {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 0.7rem;
+            color: #a0aec0;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            .subtitle {
+                font-size: 1rem;
+            }
+            .calculator-section {
+                padding: 20px;
+            }
+            .calculator-card {
+                padding: 20px;
+            }
+            .stats-buttons {
+                gap: 10px;
+            }
+            .btn-stat {
+                padding: 12px;
+                font-size: 0.9rem;
+            }
+            .result-value {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="particles" id="particles"></div>
@@ -22,7 +393,7 @@
                 Greg <span class="highlight">Tizhe Zirra</span>
             </h1>
             <p class="subtitle">
-                Innovative Calculator with <strong>MODULO Operator (%)</strong> | CI/CD Pipeline | Docker | GitHub Actions
+                Statistics Calculator with <strong>Mean, Median & Mode</strong> | CI/CD Pipeline | Docker | GitHub Actions
             </p>
         </div>
 
@@ -32,8 +403,8 @@
                 <div class="card-icon">
                     <i class="fas fa-star" style="color: #f6ad55;"></i>
                 </div>
-                <h3>Unique Feature</h3>
-                <p><strong>MODULO Operator (%)</strong> - Returns the remainder of a division operation. Example: 10 % 3 = 1</p>
+                <h3>Unique Features</h3>
+                <p><strong>MEAN, MEDIAN & MODE</strong> - Statistical analysis tools to find averages, middle values, and most frequent numbers in a dataset</p>
                 <div class="card-check">
                     <i class="fas fa-check-circle"></i> My own unique contribution
                 </div>
@@ -85,8 +456,8 @@
         <!-- Calculator Section -->
         <div class="calculator-section">
             <div class="section-title">
-                <h2><i class="fas fa-calculator"></i> Try My Calculator</h2>
-                <p>Powered by MODULO Operator - My Unique Feature for SEN 482</p>
+                <h2><i class="fas fa-chart-line"></i> Statistics Calculator</h2>
+                <p>Calculate Mean, Median & Mode - My Unique Features for SEN 482</p>
             </div>
 
             <div class="calculator-card">
@@ -95,62 +466,35 @@
                     <p style="font-size: 0.8rem; color: #6c757d;">Software Engineering · SEN 482</p>
                     <div class="unique-badge">
                         <i class="fas fa-star"></i>
-                        <span>UNIQUE FEATURE: MODULO OPERATOR (%)</span>
+                        <span>UNIQUE FEATURES: MEAN · MEDIAN · MODE</span>
                         <i class="fas fa-calculator"></i>
                     </div>
                 </div>
 
-                <div class="display-container">
-                    <div class="display-label">CALCULATION</div>
-                    <input type="text" id="result" value="0" readonly>
+                <div class="data-input-section">
+                    <label><i class="fas fa-database"></i> Enter Numbers (comma-separated):</label>
+                    <textarea id="data-input" rows="3" placeholder="Example: 10, 20, 30, 40, 50"></textarea>
                 </div>
 
-                <div class="btn-grid">
-                    <button class="btn btn-clear" onclick="clearDisplay()">
-                        <i class="fas fa-trash-alt"></i> AC
+                <div class="stats-buttons">
+                    <button class="btn-stat" onclick="calculateMean()">
+                        <i class="fas fa-calculator"></i> MEAN
                     </button>
-                    <button class="btn btn-backspace" onclick="backspace()">
-                        <i class="fas fa-backspace"></i> 
+                    <button class="btn-stat" onclick="calculateMedian()">
+                        <i class="fas fa-sort-numeric-down"></i> MEDIAN
                     </button>
-                    <button class="btn btn-operator" onclick="setOperator('/')">
-                        <i class="fas fa-divide"></i>
+                    <button class="btn-stat" onclick="calculateMode()">
+                        <i class="fas fa-chart-simple"></i> MODE
                     </button>
-                    <button class="btn btn-operator" onclick="setOperator('*')">
-                        <i class="fas fa-times"></i>
-                    </button>
+                </div>
 
-                    <button class="btn btn-number" onclick="appendNumber(7)">7</button>
-                    <button class="btn btn-number" onclick="appendNumber(8)">8</button>
-                    <button class="btn btn-number" onclick="appendNumber(9)">9</button>
-                    <button class="btn btn-operator" onclick="setOperator('-')">
-                        <i class="fas fa-minus"></i>
-                    </button>
-
-                    <button class="btn btn-number" onclick="appendNumber(4)">4</button>
-                    <button class="btn btn-number" onclick="appendNumber(5)">5</button>
-                    <button class="btn btn-number" onclick="appendNumber(6)">6</button>
-                    <button class="btn btn-operator" onclick="setOperator('+')">
-                        <i class="fas fa-plus"></i>
-                    </button>
-
-                    <button class="btn btn-number" onclick="appendNumber(1)">1</button>
-                    <button class="btn btn-number" onclick="appendNumber(2)">2</button>
-                    <button class="btn btn-number" onclick="appendNumber(3)">3</button>
-                    <button class="btn btn-modulo" onclick="setOperator('%')">
-                        <i class="fas fa-percent"></i> MOD
-                    </button>
-
-                    <button class="btn btn-number" onclick="appendNumber(0)">0</button>
-                    <button class="btn btn-number" onclick="appendDecimal()">
-                        <i class="fas fa-stop"></i> .
-                    </button>
-                    <button class="btn btn-equals" onclick="calculate()">
-                        <i class="fas fa-equals"></i> =
-                    </button>
+                <div class="result-container" id="result-container">
+                    <div class="result-label">RESULT</div>
+                    <div class="result-value" id="result-value">—</div>
                 </div>
 
                 <div class="calc-footer">
-                    <i class="fas fa-heart" style="color: #fc8181;"></i> MODULO Operator — My Unique Feature <i class="fas fa-star" style="color: #f6ad55;"></i>
+                    <i class="fas fa-heart" style="color: #fc8181;"></i> MEAN · MEDIAN · MODE — My Unique Statistical Features <i class="fas fa-star" style="color: #f6ad55;"></i>
                 </div>
             </div>
         </div>
@@ -172,125 +516,77 @@
     </div>
 
     <script>
-        // Calculator Logic
-        let currentValue = '';
-        let previousValue = '';
-        let operator = null;
-        let waitingForOperand = false;
-        
-        function updateDisplay() {
-            const display = document.getElementById('result');
-            if (display) {
-                if (currentValue === '') {
-                    display.value = '0';
+        // Statistical Calculator Functions
+        function parseInput() {
+            const input = document.getElementById('data-input').value;
+            if (!input.trim()) {
+                throw new Error('Please enter some numbers');
+            }
+            const numbers = input.split(',').map(n => parseFloat(n.trim())).filter(n => !isNaN(n));
+            if (numbers.length === 0) {
+                throw new Error('Please enter valid numbers');
+            }
+            return numbers;
+        }
+
+        function calculateMean() {
+            try {
+                const numbers = parseInput();
+                const sum = numbers.reduce((a, b) => a + b, 0);
+                const mean = sum / numbers.length;
+                document.getElementById('result-value').innerHTML = mean.toFixed(4);
+            } catch (error) {
+                document.getElementById('result-value').innerHTML = error.message;
+            }
+        }
+
+        function calculateMedian() {
+            try {
+                const numbers = parseInput();
+                const sorted = [...numbers].sort((a, b) => a - b);
+                const mid = Math.floor(sorted.length / 2);
+                let median;
+                if (sorted.length % 2 === 0) {
+                    median = (sorted[mid - 1] + sorted[mid]) / 2;
                 } else {
-                    display.value = currentValue;
+                    median = sorted[mid];
                 }
+                document.getElementById('result-value').innerHTML = median.toFixed(4);
+            } catch (error) {
+                document.getElementById('result-value').innerHTML = error.message;
             }
         }
-        
-        function appendNumber(num) {
-            if (waitingForOperand) {
-                currentValue = '';
-                waitingForOperand = false;
-            }
-            currentValue += num.toString();
-            updateDisplay();
-        }
-        
-        function appendDecimal() {
-            if (waitingForOperand) {
-                currentValue = '0';
-                waitingForOperand = false;
-            }
-            if (!currentValue.includes('.')) {
-                currentValue += '.';
-            }
-            updateDisplay();
-        }
-        
-        function setOperator(op) {
-            if (currentValue === '' && previousValue === '') {
-                return;
-            }
-            
-            if (previousValue !== '' && currentValue !== '') {
-                calculate();
-            }
-            
-            operator = op;
-            previousValue = currentValue;
-            waitingForOperand = true;
-            updateDisplay();
-        }
-        
-        function calculate() {
-            if (operator === null || currentValue === '' || previousValue === '') {
-                return;
-            }
-            
-            const prev = parseFloat(previousValue);
-            const current = parseFloat(currentValue);
-            let result = 0;
-            
-            switch (operator) {
-                case '+':
-                    result = prev + current;
-                    break;
-                case '-':
-                    result = prev - current;
-                    break;
-                case '*':
-                    result = prev * current;
-                    break;
-                case '/':
-                    if (current === 0) {
-                        clearDisplay();
-                        document.getElementById('result').value = 'Error';
-                        return;
+
+        function calculateMode() {
+            try {
+                const numbers = parseInput();
+                const frequency = {};
+                let maxFreq = 0;
+                let modes = [];
+                
+                for (const num of numbers) {
+                    frequency[num] = (frequency[num] || 0) + 1;
+                    if (frequency[num] > maxFreq) {
+                        maxFreq = frequency[num];
                     }
-                    result = prev / current;
-                    break;
-                case '%':
-                    // MODULO - Greg's Unique Feature!
-                    if (current === 0) {
-                        clearDisplay();
-                        document.getElementById('result').value = 'Error';
-                        return;
-                    }
-                    result = prev % current;
-                    break;
-                default:
-                    return;
-            }
-            
-            result = parseFloat(result.toFixed(10));
-            currentValue = result.toString();
-            previousValue = '';
-            operator = null;
-            waitingForOperand = true;
-            updateDisplay();
-        }
-        
-        function clearDisplay() {
-            currentValue = '';
-            previousValue = '';
-            operator = null;
-            waitingForOperand = false;
-            updateDisplay();
-        }
-        
-        function backspace() {
-            if (currentValue.length > 0) {
-                currentValue = currentValue.slice(0, -1);
-                if (currentValue === '') {
-                    currentValue = '0';
-                    waitingForOperand = false;
                 }
-                updateDisplay();
+                
+                for (const num in frequency) {
+                    if (frequency[num] === maxFreq && maxFreq > 1) {
+                        modes.push(num);
+                    }
+                }
+                
+                if (modes.length === 0 || maxFreq === 1) {
+                    document.getElementById('result-value').innerHTML = 'No mode (all values appear once)';
+                } else {
+                    document.getElementById('result-value').innerHTML = modes.join(', ');
+                }
+            } catch (error) {
+                document.getElementById('result-value').innerHTML = error.message;
             }
         }
-        
+
         // Create floating particles
         function createParticles() {
             const particlesContainer = document.getElementById('particles');
@@ -308,7 +604,6 @@
         }
         
         // Initialize
-        updateDisplay();
         createParticles();
     </script>
 </body>
