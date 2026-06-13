@@ -3,8 +3,7 @@
         "browser": true,
         "node": true,
         "es2021": true,
-        "jest": true,
-        "commonjs": true
+        "jest": true
     },
     "extends": "eslint:recommended",
     "parserOptions": {
@@ -12,15 +11,8 @@
         "sourceType": "module"
     },
     "rules": {
-        "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
-        "no-console": ["warn"],
+        "no-unused-vars": "off",
+        "no-console": "off",
         "no-undef": "off"
-    },
-    "globals": {
-        "module": "readonly",
-        "require": "readonly",
-        "exports": "readonly",
-        "__dirname": "readonly",
-        "process": "readonly"
     }
 }

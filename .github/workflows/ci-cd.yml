@@ -28,18 +28,22 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
       - name: FTP Deploy
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        run: |
-          lftp -c "
-          open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER;
-          ls -la;
-          pwd;
-          mirror -R public/ ./public_html/;
-          ls -la public_html/;
-          "
+        uses: "appleboy/scp-action@0.1.7"
+        with: 
+          host: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 22
+          target: 'public_html/'
+
+        # run: |
+        #   lftp -c "
+        #   open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER;
+        #   ls -la;
+        #   pwd;
+        #   mirror -R public/ /home/greg.vudse26.cloud/public_html/
+        #   ls -la public_html/;
+        #   "
       - run: echo "✅ Deployed!"
 
   verify:
