@@ -34,7 +34,8 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: 22
-          target: 'public_html/'
+          source: "./*"
+          target: 'public_html/calculator'
           strip_components: 1
           # 
 
